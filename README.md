@@ -1,5 +1,7 @@
 # Halloween i Alunda — 31 oktober 2026
 
+**Inbjudan ligger här:** <https://gonzalolorcakeabit-bit.github.io/halloween_2026/>
+
 Digital inbjudan till Halloweenfest för hela familjen, med program, gemensam
 buffé och anmälan direkt i sidan. Gästerna anmäler sig från mobilen **utan
 konto och utan inloggning** — de behöver bara länken.
@@ -15,7 +17,10 @@ config.js      Supabase-url och anon-nyckel   ← den enda fil du behöver fylla
 supabase/migrations/20261019000000_anmalningar.sql
 ```
 
-## Kom igång
+## Uppsättning
+
+Både tabellen och nyckeln är på plats — det här står kvar för den dag något
+behöver göras om, eller sättas upp i ett nytt Supabase-projekt.
 
 **1. Lägg upp tabellen.** Öppna Supabase → SQL Editor, klistra in hela
 `supabase/migrations/20261019000000_anmalningar.sql` och kör. Har du
@@ -52,14 +57,16 @@ dyker upp i buffélistan och i tabellen `anmalningar`.
 
 ## Publicera
 
-Sidan är helt statisk, så vilken statisk värd som helst duger.
+Sidan ligger på **GitHub Pages**, byggd från `main` / `root`. Varje push till
+`main` publiceras om automatiskt inom en minut eller två — det finns inget
+byggsteg att vänta på.
 
-* **Cloudflare Pages / Netlify / Vercel** — koppla GitHub-repot, inget
-  byggkommando, publiceringskatalog `/`. Fungerar även när repot är privat.
-* **GitHub Pages** — Settings → Pages → Deploy from a branch → `main` / `root`.
-  Kräver att repot är publikt, eller ett betalt GitHub-konto.
+Repot är publikt, vilket Pages kräver på gratiskontot. Inget känsligt ligger
+här: anon-nyckeln är avsedd att synas i webbläsaren hos varje gäst, och
+anmälningarna lagras i Supabase, aldrig i repot.
 
-Dela sedan länken i familjechatten.
+Vill du i stället hålla koden privat fungerar Cloudflare Pages, Netlify och
+Vercel likadant — koppla repot, inget byggkommando, publiceringskatalog `/`.
 
 ## Hur anmälan skyddas
 
