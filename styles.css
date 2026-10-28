@@ -190,8 +190,6 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{
 .tack .spoke{font-size:3rem; line-height:1}
 .tack h2{color:var(--pumpa); margin-top:.6rem}
 .tack p{max-width:26rem; margin-inline:auto}
-.stangd{text-align:center; padding:1.8rem 1.2rem}
-.stangd .t{font-family:var(--font-display); font-size:1.3rem; font-weight:700; color:var(--lov)}
 
 /* --- buffélistan --- */
 .summa{display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.1rem}

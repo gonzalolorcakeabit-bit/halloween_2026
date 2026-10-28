@@ -12,9 +12,10 @@ Supabases REST-api.
 ```
 index.html     inbjudan
 styles.css     formgivningen
-app.js         anmälan, buffélista, sista anmälningsdag
+app.js         anmälan, buffélista, nedräkning till festen
 config.js      Supabase-url och anon-nyckel   ← den enda fil du behöver fylla i
 supabase/migrations/20261019000000_anmalningar.sql
+supabase/migrations/20261028000000_oppna_anmalan_igen.sql
 ```
 
 ## Uppsättning
@@ -76,7 +77,7 @@ inloggningen:
 | | |
 |---|---|
 | **Läsa buffélistan** | alla — men bara kolumnerna som visas på sidan |
-| **Anmäla sig** | alla, till och med 27 oktober 2026 |
+| **Anmäla sig** | alla, så länge `anmalan_ar_oppen()` svarar true |
 | **Ändra sin anmälan** | bara med rätt `redigeringsnyckel` |
 | **Ändra någon annans** | ingen |
 
@@ -86,8 +87,11 @@ igen — kolumnen ingår inte i de `select`-rättigheter som `anon` har — så
 ingen annan kan läsa den. Ändringar sker genom funktionen
 `uppdatera_anmalan()`, som kräver både rätt id och rätt nyckel.
 
-Sista anmälningsdagen kontrolleras både i sidan och i databasen, så den går
-inte att kringgå genom att redigera JavaScript.
+Det finns ingen sista anmälningsdag längre. Spärren låg i funktionen
+`anmalan_ar_oppen()`, som både insert-policyn och `uppdatera_anmalan()`
+frågar — den svarar numera alltid true. Ska anmälan stänga igen räcker det
+att lägga tillbaka ett datumvillkor i den funktionen; eftersom kontrollen
+sitter i databasen går den inte att kringgå genom att redigera JavaScript.
 
 En familj som byter telefon eller rensar webbläsardatan tappar sin nyckel och
 får anmäla sig på nytt. Dubbletter städar du enklast bort i Supabases

@@ -17,14 +17,15 @@
   var NYCKEL = cfg.SUPABASE_ANON_KEY || "";
   var KONFIGURERAD = !!URL_BAS && !!NYCKEL && NYCKEL.indexOf("KLISTRA_IN") !== 0;
 
-  // Sista anmälningsdag är hela tisdag 27 oktober 2026. Samma gräns finns i
-  // databasen — den här är bara till för att visa rätt sak i gränssnittet.
-  var DEADLINE = new Date("2026-10-27T23:59:59+01:00").getTime();
+  // Ingen sista anmälningsdag: anmälan är öppen ända fram till festen, både
+  // här och i databasen (se migrationen 20261028000000_oppna_anmalan_igen.sql).
+  // Festen börjar 15.00 den 31 oktober — används bara till nedräkningen.
+  var FEST = new Date("2026-10-31T15:00:00+01:00").getTime();
   var DAG = 86400000;
   var LAGER = "halloween-alunda-2026";
 
   var el = function (id) { return document.getElementById(id); };
-  var form = el("form"), oppet = el("oppet"), stangd = el("stangd"), tack = el("tack");
+  var form = el("form"), oppet = el("oppet"), tack = el("tack");
   var fel = el("fel"), familjerBox = el("familjer"), summa = el("summa");
 
   var poster = [], min = null; // min = {id, nyckel} från localStorage
@@ -71,24 +72,15 @@
     });
   }
 
-  /* ----------------------------------------------------------- sista dagen */
+  /* ------------------------------------------------------------ nedräkning */
 
-  function stangt() { return Date.now() > DEADLINE; }
-
-  function visaDeadline() {
-    var kvar = Math.floor((DEADLINE - Date.now()) / DAG);
+  function visaNedrakning() {
+    var kvar = Math.floor((FEST - Date.now()) / DAG);
     var txt = "";
-    if (kvar > 1) txt = "(" + kvar + " dagar kvar)";
-    else if (kvar === 1) txt = "(sista dagen är i morgon)";
-    else if (kvar === 0) txt = "(sista dagen är idag!)";
+    if (kvar > 1) txt = "(om " + kvar + " dagar)";
+    else if (kvar === 1) txt = "(i morgon!)";
+    else if (kvar === 0) txt = "(idag!)";
     el("kvar").textContent = txt;
-  }
-
-  function lasOmStangt() {
-    if (!stangt()) { visaDeadline(); return; }
-    oppet.hidden = true;
-    tack.hidden = true;
-    stangd.hidden = false;
   }
 
   /* -------------------------------------------------------------- formulär */
@@ -150,7 +142,6 @@
     if (!p.familj) { visaFel("Skriv familjens namn så vi vet vilka ni är."); el("familj").focus(); return; }
     if (p.vuxna + p.barn < 1) { visaFel("Fyll i hur många ni blir — minst en person."); el("vuxna").focus(); return; }
     if (!KONFIGURERAD) { visaFel("Sidan är inte kopplad till databasen än, så anmälan kan inte sparas. Hör av dig till Lisa."); return; }
-    if (stangt()) { visaFel("Anmälan stängde den 27 oktober."); lasOmStangt(); return; }
 
     var knapp = el("skicka");
     knapp.disabled = true;
@@ -193,7 +184,13 @@
       knapp.disabled = false;
       knapp.textContent = knapptext();
       var kod = (err.detaljer && err.detaljer.code) || "";
-      if (kod === "P0001") { visaFel("Anmälan stängde den 27 oktober."); lasOmStangt(); }
+      if (kod === "P0001") {
+        // Databasen har kvar den gamla spärren: migrationen
+        // 20261028000000_oppna_anmalan_igen.sql är inte körd än. Gästen ska
+        // inte behöva läsa ett migrationsnamn, så hen får en vanlig mening.
+        if (window.console) console.warn("anmalan_ar_oppen() svarar false — kör 20261028000000_oppna_anmalan_igen.sql");
+        visaFel("Anmälan går tyvärr inte att spara just nu. Hör av dig till Lisa så löser vi det!");
+      }
       else if (kod === "P0002") { visaFel("Vi hittade inte er tidigare anmälan. Ladda om sidan och försök igen."); glomLagrat(); min = null; }
       else if (kod === "42501" || kod === "42P01") { visaFel("Anmälan går inte att spara just nu. Hör av dig till Lisa så löser vi det."); }
       else { visaFel("Något gick fel när anmälan skulle sparas: " + err.message); }
@@ -227,7 +224,8 @@
     }
     var antal = document.createElement("span");
     antal.className = "antal-txt";
-    antal.textContent = (p.vuxna || 0) + " vuxna · " + (p.barn || 0) + " barn";
+    antal.textContent = (p.vuxna === 1 ? "1 vuxen" : (p.vuxna || 0) + " vuxna") +
+                        " · " + (p.barn || 0) + " barn";
     namn.appendChild(antal);
     ruta.appendChild(namn);
 
@@ -277,7 +275,7 @@
       });
 
     chip("chip-familjer", poster.length, poster.length === 1 ? "familj" : "familjer");
-    chip("chip-vuxna", vuxna, "vuxna");
+    chip("chip-vuxna", vuxna, vuxna === 1 ? "vuxen" : "vuxna");
     chip("chip-barn", barn, "barn");
     summa.hidden = false;
   }
@@ -318,7 +316,7 @@
   }
 
   min = lasLagrat();
-  lasOmStangt();
+  visaNedrakning();
   el("skicka").textContent = knapptext();
   hamtaLista();
 
